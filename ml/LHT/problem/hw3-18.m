@@ -29,10 +29,11 @@ for i = 1:2000
     k = logisticFunc(-1.*Y(j).*X(j,:)*W).*-Y(j).*X(j,:);
     gradient = gradient + k';
   endfor
-  gradient./rows(X)./norm(gradient);
-  W = W - 0.01.*gradient;
-  disp(i)
-ER = errRate(TD, W)
+   gradient = gradient./rows(X);
+  W = W - 0.001.*gradient;
+  W
+  i
+  ER = errRate(TD, W)
 endfor
 ER = errRate(TD, W)
 
