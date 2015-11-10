@@ -1,0 +1,42 @@
+lastIdx = [](0x0)
+---
+lambda =  100
+ErrCrossValidation =  0.29000
+---
+lambda =  10
+ErrCrossValidation =  0.060000
+---
+lambda =  1
+ErrCrossValidation =  0.035000
+---
+lambda =  0.10000
+ErrCrossValidation =  0.035000
+---
+lambda =  0.010000
+ErrCrossValidation =  0.035000
+---
+lambda =  0.0010000
+ErrCrossValidation =  0.035000
+---
+lambda =    1.0000e-04
+ErrCrossValidation =  0.035000
+---
+lambda =    1.0000e-05
+ErrCrossValidation =  0.035000
+---
+lambda =    1.0000e-06
+ErrCrossValidation =  0.035000
+---
+lambda =    1.0000e-07
+ErrCrossValidation =  0.035000
+---
+lambda =    1.0000e-08
+ErrCrossValidation =  0.030000
+---
+lambda =    1.0000e-09
+ErrCrossValidation =  0.050000
+---
+lambda =    1.0000e-10
+ErrCrossValidation =  0.050000
+minErrVal =  0.030000
+lopt =    1.0000e-08
