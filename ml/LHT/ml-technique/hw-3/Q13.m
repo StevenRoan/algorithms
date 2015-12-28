@@ -40,8 +40,7 @@ function [minFeat minStump terminate] = getStumpWithMinCriteria(features, labels
   minFeat = NaN;
   minCriteria = 1000000;
   terminate = false;
-  [myImpurity] = getBranchImpureWeight(labels, classes);
-  if (myImpurity == 0)
+  if (length(unique(labels))==1 || length(unique(features(:,1)))==1 ||length(unique(features(:,2)))==1)
     terminate = true;
     return;
   endif
@@ -80,7 +79,7 @@ function [] = buildDecisionTree(inputFeat, labels, classes, myIdxInTree)
   [minFeat minStump terminate] = getStumpWithMinCriteria(inputFeat, labels, classes);
   % printf('myIdxInTree:%d, terminate:%d\n', myIdxInTree, terminate);
   if (terminate)
-    leafDataSet+=rows(labels)
+    leafDataSet+=rows(labels);
     % printf('leaf: %d = %d\n', myIdxInTree, unique(labels));
     treeForBaseHypothesisArray(myIdxInTree) = unique(labels);
     % printf('leaf set size:%d\n',rows(labels));
@@ -92,8 +91,8 @@ function [] = buildDecisionTree(inputFeat, labels, classes, myIdxInTree)
   endif
   treeForStumpArray(myIdxInTree)  = minStump;
   treeForFeatArray(myIdxInTree) = minFeat;
-  inputA= inputFeat(inputFeat(:, minFeat) < minStump);
-  inputB= inputFeat(inputFeat(:, minFeat) >= minStump);
+  inputA= inputFeat(inputFeat(:, minFeat) < minStump,:);
+  inputB= inputFeat(inputFeat(:, minFeat) >= minStump,:);
   labelA= labels(inputFeat(:, minFeat) < minStump);
   labelB= labels(inputFeat(:, minFeat) >= minStump);
   % printf('myIdxInTree:%d, fidx:%d, stump:%d\n', myIdxInTree, treeForFeatArray(myIdxInTree), treeForStumpArray(myIdxInTree));
@@ -150,12 +149,11 @@ function [errorRate] = getError(features, labels)
   errorRate = errItem / rows(features);
 endfunction
 
-
-
-
 classes = [-1 1];
 [input, labels] = reorgData(trainD);
 buildDecisionTree(input, labels, classes, 1);
-branching
 leafDataSet
+branching
 [errIn] = getError(input, labels)
+[input, labels] = reorgData(testD);
+[errOut] = getError(input, labels)
