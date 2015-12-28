@@ -42,15 +42,15 @@ function [minFeat minStump terminate] = getStumpWithMinCriteria(features, labels
   terminate = false;
   [myImpurity] = getBranchImpureWeight(labels, classes);
   if (myImpurity == 0)
-    terminate = true
+    terminate = true;
     return;
   endif
   for i = 1:columns(features)
     feat = features(:, i);
     [sortedFeat idx]= sort(feat);
     mappedLabels = labels(idx);
-    l = sortedFeat(1) - 10;
-    for j =1:rows(sortedFeat)
+    l = sortedFeat(1);
+    for j =2:rows(sortedFeat)
       r = sortedFeat(j);
       tmpStump = (l+r)/2;
       [tmpCriteria] = getCriteriaByStump(sortedFeat, tmpStump, mappedLabels, classes);
@@ -67,33 +67,95 @@ endfunction
 
 global treeForStumpArray = [];
 global treeForFeatArray = [];
+global treeForBaseHypothesisArray = [];
 global branching = 0;
-
+global leafDataSet = 0;
 
 function [] = buildDecisionTree(inputFeat, labels, classes, myIdxInTree)
   global treeForStumpArray;
   global treeForFeatArray;
+  global treeForBaseHypothesisArray;
   global branching;
-  if (length(labels) <= 1)
-    return;
-  endif
+  global leafDataSet;
   [minFeat minStump terminate] = getStumpWithMinCriteria(inputFeat, labels, classes);
+  % printf('myIdxInTree:%d, terminate:%d\n', myIdxInTree, terminate);
   if (terminate)
+    leafDataSet+=rows(labels)
+    % printf('leaf: %d = %d\n', myIdxInTree, unique(labels));
+    treeForBaseHypothesisArray(myIdxInTree) = unique(labels);
+    % printf('leaf set size:%d\n',rows(labels));
+    % pause;
     return;
   else
+    % minStump
     branching ++;
   endif
-  treeForStumpArray(myIdxInTree)  = minStump
-  treeForFeatArray(myIdxInTree) = minFeat
+  treeForStumpArray(myIdxInTree)  = minStump;
+  treeForFeatArray(myIdxInTree) = minFeat;
   inputA= inputFeat(inputFeat(:, minFeat) < minStump);
   inputB= inputFeat(inputFeat(:, minFeat) >= minStump);
   labelA= labels(inputFeat(:, minFeat) < minStump);
   labelB= labels(inputFeat(:, minFeat) >= minStump);
+  % printf('myIdxInTree:%d, fidx:%d, stump:%d\n', myIdxInTree, treeForFeatArray(myIdxInTree), treeForStumpArray(myIdxInTree));
+  % pause;
   buildDecisionTree(inputA, labelA, classes, 2*myIdxInTree); % left child
   buildDecisionTree(inputB, labelB, classes, 2*myIdxInTree+1); % right child
 endfunction
+
+function [prediction] = getPrediction (features, nodeIdx)
+  global treeForFeatArray;
+  global treeForStumpArray;
+  global treeForBaseHypothesisArray;
+  prediction = 0;
+  % printf('nodeIdx:%d, treeForFeatArray:%d \n', nodeIdx, treeForFeatArray(nodeIdx));
+  feature = features(:, treeForFeatArray(nodeIdx));
+  % features
+  % printf('nodeIdx:%d, fidx:%d, f: %d, stump:%d\n', nodeIdx, treeForFeatArray(nodeIdx),feature, treeForStumpArray(nodeIdx));
+  % disp(feature > treeForStumpArray(nodeIdx))
+  % pause;
+  if (feature > treeForStumpArray(nodeIdx))
+    % disp('A')
+    idx = (2*nodeIdx +1);
+    % disp(idx)
+    % pause;
+    if ( idx > length(treeForFeatArray) || treeForFeatArray(idx)==0)
+      % printf('nextIdx:%d, gt:%d\n', idx, treeForBaseHypothesisArray(idx));
+      prediction = treeForBaseHypothesisArray(idx);
+      return;
+    endif
+    [prediction] = getPrediction(features, idx);
+  elseif (feature < treeForStumpArray(nodeIdx))
+    % disp('B')
+    idx = (2*nodeIdx);
+    % pause;
+    if (idx > length(treeForFeatArray) ||treeForFeatArray(idx)==0)
+      prediction = treeForBaseHypothesisArray(idx);
+      return;
+    endif
+    [prediction] = getPrediction(features, idx);
+  endif
+endfunction
+
+function [errorRate] = getError(features, labels)
+  errItem = 0;
+  for i = 1:rows(features)
+  % for i = 1:1
+    feats = features(i, :);
+    [prediction] = getPrediction(feats, 1);
+    % printf('label: %d, prediction:%d\n', labels(i), prediction);
+    if (labels(i) != prediction)
+      errItem ++;
+    endif
+  endfor
+  errorRate = errItem / rows(features);
+endfunction
+
+
 
 
 classes = [-1 1];
 [input, labels] = reorgData(trainD);
 buildDecisionTree(input, labels, classes, 1);
+branching
+leafDataSet
+[errIn] = getError(input, labels)
